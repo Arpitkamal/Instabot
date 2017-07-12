@@ -7,16 +7,18 @@ import urllib
 from textblob import TextBlob
 from textblob.sentiments import NaiveBayesAnalyzer
 
+# daclaration of global variable
 ACCESS_TOKEN='3058343516.08021fa.52601b83bc7a4805957fdc846befcdea'
 BASE_URL='https://api.instagram.com/v1/'
 
 #function daclaration to get own info
 
 def self_info():
+    # fromalise the request url using the instagram API and attaching access token with it
     request_url= (BASE_URL+"users/self/?access_token=%s") %(ACCESS_TOKEN)
     print "GET request url :%s" %(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in own_media
     user_info=requests.get(request_url).json()
-
     if user_info['meta']['code']==200:
         if len(user_info['data']):
             print "username: %s" %(user_info['data']['username'])
@@ -34,8 +36,10 @@ def get_post_id(insta_username):
     if user_id==None:
         print "user does not exist"
         exit()
+     # fromalise the request url using the instagram API and attaching access token with it
     request_url=(BASE_URL+"users/%s/media/recent/?access_token=%s") %(user_id,ACCESS_TOKEN)
     print "GET request url =%s" %(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in post_id
     post_id=requests.get(request_url).json()
 
     if post_id['meta']['code']==200:
@@ -51,8 +55,10 @@ def get_post_id(insta_username):
 #function daclaration to get the user_id of user by username
 
 def get_user_id(insta_username):
+    # fromalise the request url using the instagram API and attaching access token with it
     request_url= (BASE_URL+"users/search?q=%s &access_token=%s") %(insta_username,ACCESS_TOKEN)
     print "get request url :%s"%(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in user_info
     users_info=requests.get(request_url).json()
 
     if users_info['meta']['code']==200:
@@ -71,8 +77,10 @@ def get_user_info(insta_username):
     user_id=get_user_id(insta_username)
     if user_id==None:
         exit()
+    # fromalise the request url using the instagram API and attaching access token with it
     request_url=(BASE_URL+"users/%s?&access_token=%s")%(user_id,ACCESS_TOKEN)
     print "get request url :%s"%(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in user_info
     user_info=requests.get(request_url).json()
 
     if user_info['meta']['code']==200:
@@ -90,8 +98,10 @@ def get_user_info(insta_username):
 #function get_own_post() is use to get own recent post
 
 def get_own_post():
+    # fromalise the request url using the instagram API and attaching access token with it
     request_url=(BASE_URL+"users/self/media/recent/?access_token=%s") %(ACCESS_TOKEN)
     print "get request url :%s" %(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in media_info
     media_info=requests.get(request_url).json()
 
     if media_info['meta']['code']==200:
@@ -113,9 +123,10 @@ def get_users_posts(insta_username):
     user_id=get_user_id(insta_username)
     if user_id==None:
         exit()
-
+    # fromalise the request url using the instagram API and attaching access token with it
     request_url=(BASE_URL+"users/%s/media/recent/?access_token=%s") %(user_id,ACCESS_TOKEN)
     print "get request url: %s" %(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in user_media
     user_media=requests.get(request_url).json()
 
     if user_media['meta']['code']==200:
@@ -134,8 +145,10 @@ def get_users_posts(insta_username):
 #funtion is use to display the name of user who  recently like the post of media id vala user
 def get_recent_like(insta_username):
     media_id=get_post_id(insta_username)
+    # fromalise the request url using the instagram API and attaching access token with it
     request_url=(BASE_URL+"media/%s/likes?access_token=%s") %(media_id,ACCESS_TOKEN)
     print "GET request url : %s" %(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in own_media
     like_info=requests.get(request_url).json()
 
     if like_info['meta']['code']==200:
@@ -151,8 +164,10 @@ def get_recent_like(insta_username):
 
 def get_recent_comments(insta_username):
     media_id=get_post_id(insta_username)
+    # fromalise the request url using the instagram API and attaching access token with it
     request_url=(BASE_URL+"media/%s/comments?access_token=%s") %(media_id,ACCESS_TOKEN)
     print "GET request url:%s" %(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in own_media
     comment_info=requests.get(request_url).json()
 
     if comment_info['meta']['code']==200:
@@ -169,12 +184,15 @@ def get_recent_comments(insta_username):
 #function is use to like the user post by its media_id
 def like_a_post(insta_username):
     media_id=get_post_id(insta_username)
+    # fromalise the request url using the instagram API and attaching access token in payload
     request_url=(BASE_URL+"media/%s/likes") %(media_id)
+    #when we are using post function access_token is attached in payload
     payload= {"access_token":ACCESS_TOKEN}
     print "POST request url %s" %(request_url)
-    post_a_like=requests.post(request_url,payload).json()
+    # hitting the url using post() and using the json function to decode the object and storing it in post_like
+    post_like=requests.post(request_url,payload).json()
 
-    if post_a_like['meta']['code']==200:
+    if post_like['meta']['code']==200:
         print "like was successful"
     else:
         print "your like was unsuccessful. try again !"
@@ -183,10 +201,13 @@ def like_a_post(insta_username):
 #function post_a_comment() use to add comment on instagram post
 def post_a_comment(username):
     media_id=get_post_id(username)
+    #take text from user which is use to comment on post
     comment_text=raw_input("your comment")
+    #using post() access token and the comment_text attachde in payload
     payload = {"access_token": ACCESS_TOKEN, "text": comment_text}
     request_url=(BASE_URL+"media/%s/comments") %(media_id)
     print "post request url %s" %(request_url)
+    # hitting the url using post() and using the json function to decode the object and storing it in comment_info
     comment_info=requests.post(request_url,payload).json()
 
     if comment_info['meta']['code']==200:
@@ -196,37 +217,87 @@ def post_a_comment(username):
 
 def delete_negative_comment(insta_username):
     media_id=get_post_id(insta_username)
+    # fromalise the request url using the instagram API and attaching access token with it
     request_url=(BASE_URL+"media/%s/comments?access_token=%s") %(media_id,ACCESS_TOKEN)
     print "GET request url :%s" %(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in comment_info
     comment_info=requests.get(request_url).json()
+
 
     if comment_info['meta']['code']==200:
         if len(comment_info['data']):
-    #ldka
-            for x in range(0,len(comment_info['data'])):
-                comment_id=comment_info['data'][x]['id']
-                comment_text=comment_info['data'][x]['text']
-                blob= TextBlob(comment_text,analyzer=NaiveBayesAnalyzer())
-                if (blob.sentiment.p_neg > blob.sentiment.p_pos):
-                    print "Negitive comment :%s"%(comment_text)
-                    delete_url=(BASE_URL+"media/%s/comments/%s/?access_token=%s") %(media_id,comment_id,ACCESS_TOKEN)
-                    print "DELETE request url :%s" %(delete_url)
-                    delete_info=requests.delete(delete_url).json()
+        #
+            print "what you want to do ?"
+            print "1.delete neagtive comments"
+            print "2.delete the comment with not accepted content"
+            choice=int(raw_input("enter your choice "))
+            if choice==1:
+                for x in range(0,len(comment_info['data'])):
+                    comment_id=comment_info['data'][x]['id']
+                    comment_text=comment_info['data'][x]['text']
+                    blob= TextBlob(comment_text,analyzer=NaiveBayesAnalyzer())
+                    # when negtive comment bot will delete
+                    if (blob.sentiment.p_neg > blob.sentiment.p_pos):
+                        print "Negitive comment :%s"%(comment_text)
+                        delete_url=(BASE_URL+"media/%s/comments/%s/?access_token=%s") %(media_id,comment_id,ACCESS_TOKEN)
+                        print "DELETE request url :%s" %(delete_url)
+                        delete_info=requests.delete(delete_url).json()
 
-                    if delete_info['meta']['code']==200:
-                        print "comment successfully deleted!\n"
+                        if delete_info['meta']['code']==200:
+                            print "Negative comment successfully deleted !"
+                        else:
+                            print "unable to delete comment"
                     else:
-                        print "unable to delete comment "
+                        print "positive comment :%s " %(comment_text)
+                # when user don't like the content of comment
+            if choice==2:
+                # not_accepted_text is use to delete comment which user dont like
+                # eg- friends call the user by diffent name which user dont like
+                not_accepted_text = raw_input("enter the word that you don't want in comment bot will delete that comment: ")
 
-                else:
-                    print "positive comment :%s" %(comment_text)
+                for x in range(0,len(comment_info['data'])):
+                    comment_id=comment_info['data'][x]['id']
+                    comment_text=comment_info['data'][x]['text']
+                    if not_accepted_text in comment_text:
+                        print "Negative comment :%s " %(comment_text)
+                        delete_url=(BASE_URL+"media/%s/comments/%s/?access_token=%s") %(media_id,comment_id,ACCESS_TOKEN)
+                        delete_info = requests.delete(delete_url).json()
+
+                        if delete_info['meta']['code']==200:
+                            print "comment successfully deleted!\n"
+                        else:
+                            print "unable to delete comment "
+                    else:
+                        print "comment %s does not contain not_accepted_text " %(str(x))
 
         else:
             print "There is no comment in this post"
     else:
         print "status code other than 200 received"
 
+def get_own_likes():
+    #fromalise the request url using the instagram API and attaching access token with it
+    request_url=(BASE_URL+"users/self/media/liked?access_token=%s") %(ACCESS_TOKEN)
+    print "GET request url :%s " %(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in own_media
+    own_media=requests.get(request_url).json()
+    #checking if the status code is 200 i.e accepted or success
+    if own_media['meta']['code']==200:
+        # checking is the the data  exist in json object
+        if len(own_media['data']):
+            #printing the id of most recent liked media
+            print "id "+own_media['data'][0]['user']['id']
+            print "id "+own_media['data'][1]['images']['thumbnail']['url']
+            # using urllib to download the most recent post
+            image_name=own_media['data'][0]['id']+".jpeg"
+            image_url=own_media['data'][0]['images']['standard_resolution']['url']
+            urllib.urlretrieve(image_url,image_name)
+            print "your image has been downloaded"
+        else:
+            print"There is no recent post"
 
+    else:
+        print "status code other than 200 received"
 
 
 
@@ -244,7 +315,8 @@ def start_bot():
         print "7.Get the the list of comments on recent post"
         print "8.Make a comment on recent post of a user"
         print "9.Delete a negative comment from recent post of user"
-        print "10.Exit"
+        print "10.Get the  recent media liked by you"
+        print "11.Exit"
 
         choice=int(raw_input("Enter your choice"))
         if choice == 1:
@@ -273,6 +345,8 @@ def start_bot():
             user_name=raw_input("enter the instagram username of the user")
             delete_negative_comment(user_name)
         elif choice == 10:
+            get_own_post()
+        elif choice==11:
             exit()
 
 
