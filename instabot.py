@@ -7,6 +7,33 @@ import urllib
 from textblob import TextBlob
 from textblob.sentiments import NaiveBayesAnalyzer
 
+"""  explaining parsing
+     for example by hitting url='https://api.instagram.com/v1/users/self/?access_token=ACCESS-TOKEN'  
+     respose is : temp  ={
+    "data": {
+        "id": "1574083",
+        "username": "snoopdogg",
+        "full_name": "Snoop Dogg",
+        "profile_picture": "http://distillery.s3.amazonaws.com/profiles/profile_1574083_75sq_1295469061.jpg",
+        "bio": "This is my bio",
+        "website": "http://snoopdogg.com",
+        "counts": {
+            "media": 1320,
+            "follows": 420,
+            "followed_by": 3410
+        }
+}
+to access or use the data in temp we perform parsing
+for example to take username from temp
+      x=temp['data']['username] then if we print x result will be snoopdogg
+          
+"""
+
+
+
+# list use to store no_of_like and media_id_of_that_post in creative_way()
+LIKE_COUNT = []
+
 # daclaration of global variable
 ACCESS_TOKEN='3058343516.08021fa.52601b83bc7a4805957fdc846befcdea'
 BASE_URL='https://api.instagram.com/v1/'
@@ -17,10 +44,11 @@ def self_info():
     # fromalise the request url using the instagram API and attaching access token with it
     request_url= (BASE_URL+"users/self/?access_token=%s") %(ACCESS_TOKEN)
     print "GET request url :%s" %(request_url)
-    # hitting the url using get() and using the json function to decode the object and storing it in own_media
+    # hitting the url using get() and using the json function to decode the object and storing it in user_info
     user_info=requests.get(request_url).json()
     if user_info['meta']['code']==200:
         if len(user_info['data']):
+            # using  parsing
             print "username: %s" %(user_info['data']['username'])
             print "No. of followers: %s" %(user_info['data']['counts']['followed_by'])
             print "No of people you are following:%s" %(user_info['data']['counts']['follows'])
@@ -58,7 +86,7 @@ def get_user_id(insta_username):
     # fromalise the request url using the instagram API and attaching access token with it
     request_url= (BASE_URL+"users/search?q=%s &access_token=%s") %(insta_username,ACCESS_TOKEN)
     print "get request url :%s"%(request_url)
-    # hitting the url using get() and using the json function to decode the object and storing it in user_info
+    # hitting the url using get() and using the json function to decode the object and storing it in users_info
     users_info=requests.get(request_url).json()
 
     if users_info['meta']['code']==200:
@@ -85,6 +113,7 @@ def get_user_info(insta_username):
 
     if user_info['meta']['code']==200:
         if len(user_info['data']):
+            #using parsing
             print "usersname :%s" %(user_info['data']['username'])
             print "No of followers:%s" %(user_info['data']['counts']['follows'])
             print "No. of people you are following:%s" %(user_info['data']['counts']['followed_by'])
@@ -106,6 +135,7 @@ def get_own_post():
 
     if media_info['meta']['code']==200:
         if len(media_info['data']):
+            #using parsing
             image_name= media_info['data'][0]['id']+".jpg"
             image_url=media_info['data'][0]['images']['standard_resolution']['url']
             urllib.urlretrieve(image_url,image_name)
@@ -131,6 +161,7 @@ def get_users_posts(insta_username):
 
     if user_media['meta']['code']==200:
         if len(user_media['data']):
+            #using parsing
             image_name=user_media['data'][0]['id']+".jpeg"
             image_url=user_media['data'][0]['images']['standard_resolution']['url']
             urllib.urlretrieve(image_url,image_name)
@@ -148,7 +179,7 @@ def get_recent_like(insta_username):
     # fromalise the request url using the instagram API and attaching access token with it
     request_url=(BASE_URL+"media/%s/likes?access_token=%s") %(media_id,ACCESS_TOKEN)
     print "GET request url : %s" %(request_url)
-    # hitting the url using get() and using the json function to decode the object and storing it in own_media
+    # hitting the url using get() and using the json function to decode the object and storing it in like_info
     like_info=requests.get(request_url).json()
 
     if like_info['meta']['code']==200:
@@ -226,21 +257,25 @@ def delete_negative_comment(insta_username):
 
     if comment_info['meta']['code']==200:
         if len(comment_info['data']):
-        #
+        # user choose one from two option according to need
             print "what you want to do ?"
             print "1.delete neagtive comments"
             print "2.delete the comment with not accepted content"
             choice=int(raw_input("enter your choice "))
+            if choice>=3:
+                print "wrong choise entered"
             if choice==1:
                 for x in range(0,len(comment_info['data'])):
                     comment_id=comment_info['data'][x]['id']
                     comment_text=comment_info['data'][x]['text']
+                    # analyzing all the comment by NaiveBayesAnalyzer()
                     blob= TextBlob(comment_text,analyzer=NaiveBayesAnalyzer())
                     # when negtive comment bot will delete
                     if (blob.sentiment.p_neg > blob.sentiment.p_pos):
                         print "Negitive comment :%s"%(comment_text)
                         delete_url=(BASE_URL+"media/%s/comments/%s/?access_token=%s") %(media_id,comment_id,ACCESS_TOKEN)
                         print "DELETE request url :%s" %(delete_url)
+                        #hitting the url by delete(url) to delete the negative comment
                         delete_info=requests.delete(delete_url).json()
 
                         if delete_info['meta']['code']==200:
@@ -299,6 +334,55 @@ def get_own_likes():
     else:
         print "status code other than 200 received"
 
+#function creative_way is use to choose a post and download it
+
+def creative_way(insta_username):
+    if insta_username=='self':
+        media_id='self'
+    else:
+        media_id=get_user_id(insta_username)
+
+    # fromalise the request url using the instagram API and attaching access token with it
+    request_url=(BASE_URL+'users/%s/media/recent/?access_token=%s') %(media_id,ACCESS_TOKEN)
+    print "get request url %s" %(request_url)
+    # hitting the url using get() and using the json function to decode the object and storing it in own_media
+    media_info=requests.get(request_url).json()
+
+    if media_info['meta']['code']==200:
+        if len(media_info['data']):
+            # for loop use to store all post in lIKE_COUNT
+            for x in range(len(media_info['data'])):
+                individual_media_id=str(media_info['data'][x]['id'])
+                LIKE_COUNT.append(str(media_info['data'][x]['likes']['count'])+"."+individual_media_id)
+            print  "LIKE_COUNT is sorted list "
+            print "index.number of like on post.media_id of that post"
+            #printing all the post with number_of_like.media_id_of_that_post
+            for i in range(len(LIKE_COUNT)):
+                print str(i)+"."+LIKE_COUNT[i]
+            # select one post and store in post_selection variable
+            post_selection=int(raw_input("choose one post from obove"))
+            # display the user selected post which have no_likes_on_post.media_id_of_that_post
+            print "selected post :"+LIKE_COUNT.pop(post_selection)
+            # user have to enter media_id which display above
+            selected_media_id=raw_input("enter the media_of selected post (example-number_of_like.media_id_of_that_post) ")
+            # fromalise the request url using the instagram API , attaching media_id entered by user and attaching access token with it and
+
+            request_url=(BASE_URL+"media/%s?access_token=%s") %(selected_media_id,ACCESS_TOKEN)
+            print "GET request url %s" %(request_url)
+            # hitting the url with get() then we have all data of that media_id(post) in selected_media_info variable
+            selected_media_info=requests.get(request_url).json()
+
+            image_name=selected_media_info['data']['id']+".jpeg"
+            image_url=selected_media_info['data']['images']['standard_resolution']['url']
+            #using urllib download the post
+            urllib.urlretrieve(image_url,image_name)
+            print "The selected  post is downloaded"
+        else:
+            print"there is no  post"
+    else:
+        print "status code other than 200 receiveed"
+
+
 
 
 def start_bot():
@@ -316,7 +400,8 @@ def start_bot():
         print "8.Make a comment on recent post of a user"
         print "9.Delete a negative comment from recent post of user"
         print "10.Get the  recent media liked by you"
-        print "11.Exit"
+        print "11.creative to choose a post"
+        print "12.Exit"
 
         choice=int(raw_input("Enter your choice"))
         if choice == 1:
@@ -347,8 +432,12 @@ def start_bot():
         elif choice == 10:
             get_own_post()
         elif choice==11:
+            user_name = raw_input("enter the instagram username of the user")
+            creative_way(user_name)
+        elif choice==12:
             exit()
-
+        else:
+            print "wrong choise entered PLEASE try again"
 
 
 start_bot()
